@@ -1,0 +1,59 @@
+[tool.pytest.ini_options]
+minversion = "8.0"
+testpaths = ["tests"]
+addopts = "-ra --strict-markers --strict-config"
+filterwarnings = [
+    "error",
+    "ignore::DeprecationWarning:starlette.*",
+    # rooms.host_player_id and players.room_id form an intentional cycle that
+    # SQLite supports. SQLAlchemy warns only about its table-sort heuristic.
+    "ignore:Cannot correctly sort tables.*:sqlalchemy.exc.SAWarning",
+]
+
+[tool.coverage.run]
+source = ["app"]
+branch = true
+omit = ["app/main.py"]
+
+[tool.coverage.report]
+show_missing = true
+fail_under = 90
+exclude_lines = [
+    "pragma: no cover",
+    "if TYPE_CHECKING:",
+    "\\.\\.\\.",
+]
+
+[tool.ruff]
+target-version = "py311"
+line-length = 100
+src = ["app", "tests"]
+extend-exclude = ["alembic/versions"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "C4", "SIM", "S", "RUF", "ASYNC"]
+ignore = ["S101"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["app", "tests"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["S105", "S106", "S311"]
+# SQLAlchemy relationship annotations must quote names imported only under
+# TYPE_CHECKING; the quotes survive postponed evaluation as ForwardRef values.
+"app/models/*.py" = ["UP037"]
+
+[tool.ruff.format]
+quote-style = "double"
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+warn_unreachable = true
+show_error_codes = true
+files = ["app"]
+exclude = ["alembic"]
+
+[[tool.mypy.overrides]]
+module = ["alembic.*"]
+ignore_missing_imports = true
